@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/database";
 import Transaction from "@/models/Transaction";
 import User from "@/models/User";
-import { protect } from "@/lib/auth";
 
 export async function POST(request) {
   try {
