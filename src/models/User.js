@@ -16,25 +16,25 @@ const UserSchema = new mongoose.Schema(
     // Wallet balance
     balance: { type: Number, default: 0 },
 
-    // Updated orders schema to match frontend
+    // Updated orders schema - REMOVE required: true
     orders: [
       {
         type: {
           type: String,
-          required: true,
+          // REMOVE: required: true,
           enum: ["internet", "sms", "electricity"],
         },
         description: {
           type: String,
-          required: true,
+          // REMOVE: required: true,
         },
         amount: {
           type: Number,
-          required: true,
+          // REMOVE: required: true,
         },
         recipient: {
           type: String,
-          required: true,
+          // REMOVE: required: true,
         },
         network: {
           type: String,
@@ -52,7 +52,7 @@ const UserSchema = new mongoose.Schema(
         },
         orderNumber: {
           type: String,
-          required: true,
+          // REMOVE: required: true,
         },
         // Keep these for backward compatibility if needed
         productId: String,
