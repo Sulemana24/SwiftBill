@@ -1,4 +1,4 @@
-/* import dbConnect from "../../../lib/mongodb";
+import dbConnect from "../../../lib/mongodb";
 import User from "../../../models/User";
 import bcrypt from "bcryptjs";
 import { signToken, setTokenCookie } from "../../../lib/auth";
@@ -36,4 +36,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Internal server error" });
   }
 }
- */
