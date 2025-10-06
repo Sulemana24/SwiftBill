@@ -1,4 +1,3 @@
-// app/api/auth/login/route.js
 import dbConnect from "@/lib/mongodb";
 import User from "../../../../models/User";
 import { generateToken } from "@/lib/auth";
@@ -84,12 +83,11 @@ export async function POST(req) {
       token,
     });
 
-    // Set cookie (optional)
     response.cookies.set("token", token, {
       httpOnly: true,
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       secure: process.env.NODE_ENV === "production",
     });
 

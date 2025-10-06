@@ -1,9 +1,17 @@
 "use client";
 import { useState } from "react";
-import { FaEye, FaEyeSlash, FaEnvelope, FaLock, FaUser } from "react-icons/fa";
+import {
+  FaEye,
+  FaEyeSlash,
+  FaEnvelope,
+  FaLock,
+  FaUser,
+  FaUserClock,
+  FaCheckCircle,
+} from "react-icons/fa";
 import Image from "next/image";
 
-const LoginForm = ({ onLogin, onSignup }) => {
+const LoginForm = ({ onLogin, onSignup, onGuestLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -13,11 +21,12 @@ const LoginForm = ({ onLogin, onSignup }) => {
     confirmPassword: "",
     fullName: "",
   });
+  const [signupSuccess, setSignupSuccess] = useState(false);
+  const [signedUpEmail, setSignedUpEmail] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Client-side validation
     if (!isLogin) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
@@ -50,10 +59,7 @@ const LoginForm = ({ onLogin, onSignup }) => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
-        // Clear old user data first
         localStorage.removeItem("user");
-
-        // Set new user data with fresh balance
         const userData = {
           _id: data.user._id || data.user.id,
           name: data.user.name || data.user.fullName,
@@ -63,7 +69,6 @@ const LoginForm = ({ onLogin, onSignup }) => {
 
         localStorage.setItem("user", JSON.stringify(userData));
 
-        // Call onLogin with the fresh user data
         onLogin(userData);
       } else {
         const res = await fetch("/api/auth/signup", {
@@ -80,21 +85,25 @@ const LoginForm = ({ onLogin, onSignup }) => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
-        // Clear old user data first
-        localStorage.removeItem("user");
+        // Show success message and redirect to login
+        setSignupSuccess(true);
+        setSignedUpEmail(formData.email);
 
-        // Set new user data with fresh balance
-        const userData = {
-          _id: data.user._id || data.user.id,
-          name: data.user.name || data.user.fullName,
-          email: data.user.email,
-          walletBalance: data.user.balance || 0,
-        };
+        // Clear form
+        setFormData({
+          email: "",
+          password: "",
+          confirmPassword: "",
+          fullName: "",
+        });
 
-        localStorage.setItem("user", JSON.stringify(userData));
-
-        // Call onSignup with the fresh user data
-        onSignup(userData);
+        // Auto-switch to login after 2 seconds
+        setTimeout(() => {
+          setIsLogin(true);
+          setSignupSuccess(false);
+          // Pre-fill the email in login form
+          setFormData((prev) => ({ ...prev, email: signedUpEmail }));
+        }, 2000);
       }
     } catch (err) {
       alert(err.message);
@@ -110,12 +119,45 @@ const LoginForm = ({ onLogin, onSignup }) => {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setFormData({
-      email: "",
+      email: isLogin ? formData.email : "", // Keep email when switching from login to signup
       password: "",
       confirmPassword: "",
       fullName: "",
     });
+    setSignupSuccess(false);
   };
+
+  const handleGuestAccess = () => {
+    if (onGuestLogin) {
+      onGuestLogin();
+    }
+  };
+
+  // Success message component
+  if (signupSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-lg border border-green-100 p-8 text-center">
+            <div className="flex justify-center mb-4">
+              <div className="bg-green-100 p-3 rounded-full">
+                <FaCheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Account Created Successfully!
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Your account has been created. Redirecting you to login...
+            </p>
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
@@ -138,7 +180,6 @@ const LoginForm = ({ onLogin, onSignup }) => {
           </p>
         </div>
 
-        {/* Form */}
         <div className="bg-white rounded-2xl shadow-lg border border-blue-100 p-8">
           <div className="flex bg-blue-50 rounded-lg p-1 mb-6">
             <button
@@ -192,7 +233,6 @@ const LoginForm = ({ onLogin, onSignup }) => {
               </div>
             )}
 
-            {/* Email */}
             <div className="space-y-2">
               <label
                 htmlFor="email"
@@ -325,6 +365,22 @@ const LoginForm = ({ onLogin, onSignup }) => {
                 "Create Account"
               )}
             </button>
+
+            {/* Guest Access Button */}
+            <div className="pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={handleGuestAccess}
+                className="w-full flex justify-center items-center py-3 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+              >
+                <FaUserClock className="h-4 w-4 text-gray-500 mr-2" />
+                Continue as Guest
+              </button>
+              <p className="text-xs text-gray-500 text-center mt-2">
+                Explore our services without an account. Sign up to make
+                purchases.
+              </p>
+            </div>
 
             {!isLogin && (
               <p className="text-xs text-gray-500 text-center mt-2">

@@ -1,5 +1,4 @@
-// pages/api/auth/me.js
-import dbConnect from "../../../lib/mongodb";
+/* import dbConnect from "../../../lib/mongodb";
 import User from "../../../models/User";
 import { verifyToken } from "../../../lib/auth";
 import cookie from "cookie";
@@ -15,7 +14,6 @@ export default async function handler(req, res) {
 
     const payload = verifyToken(token);
     if (!payload) {
-      // invalid token - clear cookie?
       return res.status(200).json({ user: null });
     }
 
@@ -28,3 +26,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Internal server error" });
   }
 }
+ */

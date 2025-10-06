@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import { useRouter } from "next/navigation";
@@ -11,22 +10,30 @@ import { useBalance } from "../components/BalanceContext";
 export default function Layout() {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const { showToast } = useToast();
   const { balance, setBalance, resetBalance } = useBalance();
 
-  // Check login on mount
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user")) || {};
+    const guestMode = localStorage.getItem("guestMode") === "true";
+
     if (userData && userData._id) {
       setUser(userData);
-      // Use the balance from BalanceContext (which loads from localStorage)
       setIsLoggedIn(true);
+    } else if (guestMode) {
+      setIsGuest(true);
+      setUser({
+        name: "Guest User",
+        email: "guest@example.com",
+        isGuest: true,
+      });
     }
+
     setIsLoading(false);
 
-    // --- Handle Paystack callback automatically ---
     const query = new URLSearchParams(window.location.search);
     const reference = query.get("reference");
     const userId = query.get("userId");
@@ -47,7 +54,6 @@ export default function Layout() {
       const data = await res.json();
 
       if (data.success) {
-        // Update BalanceContext and localStorage
         setBalance(data.newBalance);
 
         const userData = JSON.parse(localStorage.getItem("user")) || {};
@@ -61,7 +67,6 @@ export default function Layout() {
           message: `New Balance: Ghc${data.newBalance.toFixed(2)}`,
         });
 
-        // Clean URL
         router.replace(window.location.pathname);
       } else {
         showToast({
@@ -82,11 +87,35 @@ export default function Layout() {
     }
   };
 
+  const handleGuestLogin = () => {
+    const guestUser = {
+      name: "Guest User",
+      email: "guest@example.com",
+      isGuest: true,
+      walletBalance: 0,
+    };
+
+    setUser(guestUser);
+    setIsGuest(true);
+    setBalance(0);
+    localStorage.setItem("guestMode", "true");
+
+    showToast({
+      type: "info",
+      title: "Guest Mode Activated",
+      message: "Explore our services! Sign up to make purchases.",
+    });
+
+    router.push("/");
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("guestMode");
     setUser(null);
-    resetBalance(); // Reset the global balance context
+    resetBalance();
     setIsLoggedIn(false);
+    setIsGuest(false);
 
     showToast({
       type: "success",
@@ -98,11 +127,11 @@ export default function Layout() {
   };
 
   const handleLogin = (userData) => {
+    localStorage.removeItem("guestMode");
     setUser(userData);
-    setBalance(userData.walletBalance || 0); // Update global balance context
+    setBalance(userData.walletBalance || 0);
     setIsLoggedIn(true);
-
-    // localStorage is already set in LoginForm, no need to set here
+    setIsGuest(false);
 
     showToast({
       type: "success",
@@ -114,11 +143,11 @@ export default function Layout() {
   };
 
   const handleSignup = (userData) => {
+    localStorage.removeItem("guestMode");
     setUser(userData);
-    setBalance(userData.walletBalance || 0); // Update global balance context
+    setBalance(userData.walletBalance || 0);
     setIsLoggedIn(true);
-
-    // localStorage is already set in LoginForm, no need to set here
+    setIsGuest(false);
 
     showToast({
       type: "success",
@@ -140,21 +169,24 @@ export default function Layout() {
     );
   }
 
-  if (!isLoggedIn) {
-    return <LoginForm onLogin={handleLogin} onSignup={handleSignup} />;
+  if (!isLoggedIn && !isGuest) {
+    return (
+      <LoginForm
+        onLogin={handleLogin}
+        onSignup={handleSignup}
+        onGuestLogin={handleGuestLogin}
+      />
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar
-        user={user}
-        onLogout={handleLogout}
-        // Remove walletBalance and onBalanceUpdate props - Navbar uses BalanceContext
-      />
+      <Navbar user={user} onLogout={handleLogout} isGuest={isGuest} />
       <Dashboard
         user={user}
-        walletBalance={balance} // Use balance from BalanceContext
-        onBalanceUpdate={setBalance} // Use setBalance from BalanceContext
+        walletBalance={balance}
+        onBalanceUpdate={setBalance}
+        isGuest={isGuest}
       />
     </div>
   );

@@ -1,4 +1,3 @@
-// components/Navbar.js
 "use client";
 import Image from "next/image";
 import { useState, useEffect } from "react";
@@ -19,7 +18,6 @@ export default function Navbar({ user, onLogout }) {
   // Fetch fresh balance whenever user changes
   useEffect(() => {
     if (!userId) {
-      // If no user, reset balance
       resetBalance();
       return;
     }
@@ -34,12 +32,12 @@ export default function Navbar({ user, onLogout }) {
           const data = await res.json();
           if (data.user?.balance !== undefined) {
             setBalance(data.user.balance);
-            // Update localStorage with current user's data
+
             const userData = JSON.parse(localStorage.getItem("user")) || {};
             const updatedUser = {
               ...userData,
               walletBalance: data.user.balance,
-              _id: userId, // Ensure we have the current user's ID
+              _id: userId,
             };
             localStorage.setItem("user", JSON.stringify(updatedUser));
           }
@@ -53,7 +51,6 @@ export default function Navbar({ user, onLogout }) {
   }, [userId, setBalance, resetBalance]);
 
   const handleLogout = () => {
-    // Clear localStorage and reset balance
     localStorage.removeItem("user");
     resetBalance();
 

@@ -1,7 +1,6 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
 
 export const api = {
-  // Auth
   register: (userData) =>
     fetch(`${API_URL}/auth/register`, {
       method: "POST",
@@ -16,7 +15,6 @@ export const api = {
       body: JSON.stringify(credentials),
     }).then((res) => res.json()),
 
-  // Transactions
   getTransactions: (token) =>
     fetch(`${API_URL}/transactions`, {
       headers: {

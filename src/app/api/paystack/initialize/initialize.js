@@ -13,7 +13,7 @@ export async function POST(req) {
       "https://api.paystack.co/transaction/initialize",
       {
         email,
-        amount: amount * 100, // Paystack expects kobo
+        amount: amount * 100,
         currency: "GHS",
         callback_url: `${process.env.NEXT_PUBLIC_BASE_URL}/callback?userId=${userId}`,
       },

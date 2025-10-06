@@ -1,4 +1,3 @@
-// app/callback/page.js
 "use client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -20,12 +19,10 @@ export default function PaystackCallbackPage() {
           return;
         }
 
-        // Get current user from localStorage to verify it's the same user
         const currentUser = JSON.parse(localStorage.getItem("user")) || {};
 
         if (currentUser._id !== userId) {
           console.warn("User ID mismatch during payment verification");
-          // Still proceed with verification, but log the issue
         }
 
         const res = await fetch("/api/paystack/verify", {
@@ -37,10 +34,7 @@ export default function PaystackCallbackPage() {
         const data = await res.json();
 
         if (data.success) {
-          // Update global balance state
           setBalance(data.newBalance);
-
-          // Update localStorage only if it's the same user
           const userData = JSON.parse(localStorage.getItem("user")) || {};
           if (userData._id === userId) {
             const updatedUser = { ...userData, walletBalance: data.newBalance };

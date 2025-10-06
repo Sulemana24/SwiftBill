@@ -13,7 +13,6 @@ export async function POST(req) {
       );
     }
 
-    // Verify payment with Paystack
     const { data } = await axios.get(
       `https://api.paystack.co/transaction/verify/${reference}`,
       {
@@ -29,7 +28,6 @@ export async function POST(req) {
 
     await dbConnect();
 
-    // Find the user
     const user = await User.findById(userId);
     if (!user) {
       return new Response(JSON.stringify({ error: "User not found" }), {
@@ -37,13 +35,12 @@ export async function POST(req) {
       });
     }
 
-    // ✅ FIX: Update the correct field name "balance" instead of "walletBalance"
     const amountInGhs = payment.amount / 100;
     user.balance = (user.balance || 0) + amountInGhs;
     await user.save();
 
     return new Response(
-      JSON.stringify({ success: true, newBalance: user.balance }), // ✅ Also return "balance"
+      JSON.stringify({ success: true, newBalance: user.balance }),
       { status: 200 }
     );
   } catch (err) {

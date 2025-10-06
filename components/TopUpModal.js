@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { FaWallet } from "react-icons/fa";
 
@@ -54,8 +53,6 @@ export default function TopUpModal({
       const data = await res.json();
 
       if (data.authorization_url) {
-        // Simply redirect to Paystack - the callback page will handle verification
-        // This is more reliable than window polling
         window.location.href = data.authorization_url;
       } else {
         alert(data.error || "Payment initialization failed.");
@@ -66,7 +63,6 @@ export default function TopUpModal({
       alert("Server error!");
       setLoading(false);
     }
-    // Note: We don't call setLoading(false) here because the page will redirect
   };
 
   const handleClose = () => {

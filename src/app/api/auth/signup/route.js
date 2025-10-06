@@ -1,4 +1,3 @@
-// app/api/auth/signup/route.js
 import dbConnect from "@/lib/mongodb";
 import User from "../../../../models/User";
 import { generateToken } from "@/lib/auth";
@@ -52,7 +51,6 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Save plain password here; pre-save hook will hash it automatically
     const user = new User({
       name: fullName,
       email: email.toLowerCase().trim(),
@@ -74,7 +72,7 @@ export async function POST(req) {
       httpOnly: true,
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       secure: process.env.NODE_ENV === "production",
     });
 
