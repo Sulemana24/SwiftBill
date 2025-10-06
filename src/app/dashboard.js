@@ -7,10 +7,106 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaClock,
+  FaCreditCard,
+  FaShieldAlt,
+  FaQuestionCircle,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import ServiceModal from "../../components/ServiceModal";
 import { useToast } from "../../components/Toast";
 import Link from "next/link";
+
+// ---------- Instructions Component ----------
+const Instructions = () => {
+  const steps = [
+    {
+      title: "Top Up Your Wallet",
+      description: "Add funds to your account balance before making purchases",
+      icon: FaCreditCard,
+      color: "bg-blue-500",
+    },
+    {
+      title: "Choose Your Service",
+      description:
+        "Select from Internet Data, SMS Bundles, or Electricity Payments",
+      icon: FaQuestionCircle,
+      color: "bg-purple-500",
+    },
+    {
+      title: "Select Network & Details",
+      description:
+        "Choose your network provider and enter required information",
+      icon: FaMobile,
+      color: "bg-green-500",
+    },
+    {
+      title: "Complete Purchase",
+      description:
+        "Confirm transaction details and complete your purchase securely",
+      icon: FaShieldAlt,
+      color: "bg-yellow-500",
+    },
+  ];
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+          <FaQuestionCircle className="w-5 h-5 text-blue-600" />
+          <span>How to Use SwiftBill</span>
+        </h2>
+        <p className="text-sm text-gray-600 mt-1">
+          Follow these simple steps to purchase bundles and pay bills
+        </p>
+      </div>
+      <div className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {steps.map((step, index) => (
+            <div
+              key={index}
+              className="flex items-start space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+            >
+              <div
+                className={`${step.color} p-2 rounded-lg text-white flex-shrink-0`}
+              >
+                <step.icon className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2 mb-1">
+                  <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium border border-gray-300">
+                    {index + 1}
+                  </span>
+                  <h4 className="font-semibold text-gray-900">{step.title}</h4>
+                </div>
+                <p className="text-sm text-gray-600">{step.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h4 className="font-semibold text-blue-900 mb-2 flex items-center space-x-2">
+            <FaExclamationTriangle className="w-4 h-4" />
+            <span>Important Notes</span>
+          </h4>
+          <ul className="text-sm text-blue-700 space-y-1">
+            <li>
+              • Ensure you have sufficient balance before making purchases
+            </li>
+            <li>
+              • Double-check phone numbers and meter numbers before confirming
+            </li>
+            <li>
+              • Data and SMS bundles are delivered instantly after payment
+            </li>
+            <li>• Electricity payments may take 5-10 minutes to reflect</li>
+            <li>• Keep your transaction receipts for future reference</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ---------- OrderHistory Component ----------
 const OrderHistory = ({ orders }) => {
@@ -172,7 +268,6 @@ export default function Dashboard({
   // ---------- Fetch Orders ----------
   useEffect(() => {
     const fetchOrders = async () => {
-      // ✅ Use user._id instead of user.id
       const userId = user?._id;
 
       if (!userId) {
@@ -190,10 +285,10 @@ export default function Dashboard({
         }
 
         const data = await res.json();
-        console.log("📦 Orders API response:", data); // Debug log
+        console.log("📦 Orders API response:", data);
 
         const orders = Array.isArray(data?.orders) ? data.orders : [];
-        console.log("📦 Processed orders:", orders); // Debug log
+        console.log("📦 Processed orders:", orders);
 
         setRecentOrders(orders.reverse());
       } catch (err) {
@@ -203,7 +298,7 @@ export default function Dashboard({
     };
 
     fetchOrders();
-  }, [user?._id]); // ✅ Use _id as dependency
+  }, [user?._id]);
 
   // ---------- Stats for Services ----------
   const stats = [
@@ -237,7 +332,6 @@ export default function Dashboard({
 
   // ---------- Handle Purchase ----------
   const handlePurchase = async (purchaseData) => {
-    // Use user._id instead of user.id since your User model uses _id
     const userId = user?._id || user?.id;
 
     if (!userId) {
@@ -302,11 +396,9 @@ export default function Dashboard({
         throw new Error(data.error || "Failed to save order");
       }
 
-      // ✅ Update balance with the value from API response
       if (data.balance !== undefined) {
         onBalanceUpdate(data.balance);
 
-        // ✅ Also update localStorage to keep it in sync
         const userData = JSON.parse(localStorage.getItem("user")) || {};
         const updatedUser = {
           ...userData,
@@ -316,7 +408,7 @@ export default function Dashboard({
         localStorage.setItem("user", JSON.stringify(updatedUser));
       }
 
-      // ✅ Update orders list
+      //Update orders list
       setRecentOrders((prev) => [data.order, ...prev.slice(0, 4)]);
 
       showToast({
@@ -343,6 +435,7 @@ export default function Dashboard({
       return { success: false, error: err.message };
     }
   };
+
   // ---------- Render ----------
   if (!user) {
     return (
@@ -411,8 +504,10 @@ export default function Dashboard({
             ))}
           </div>
 
-          <div className="mb-8">
+          {/* Order History and Instructions in Grid Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <OrderHistory orders={recentOrders} />
+            <Instructions />
           </div>
         </main>
       </div>

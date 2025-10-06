@@ -34,12 +34,11 @@ export default function Footer() {
 
         {/* Bottom Section */}
         <div>
-          <p className="text-center text-sm text-gray-200">
+          <p className="text-center text-sm text-gray-200 mb-2">
             © {new Date().getFullYear()} SwiftBill. All rights reserved.
           </p>
-          <p className="text-center text-sm text-gray-200 mb-2">
-            Made with ❤️ by Simdi Technologies - Your go-to app for effortless
-            bill payments!
+          <p className="text-center text-sm text-gray-200">
+            Made with ❤️ by Simdi Technologies
           </p>
         </div>
       </div>

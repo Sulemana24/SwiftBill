@@ -1,4 +1,3 @@
-// pages/api/protected-example.js
 import { verifyToken } from "../../lib/auth";
 import cookie from "cookie";
 import dbConnect from "../../lib/mongodb";
@@ -12,8 +11,6 @@ export default async function handler(req, res) {
   if (!payload) return res.status(401).json({ error: "Invalid token" });
 
   await dbConnect();
-  // now you can use payload.sub (user id)
-  // example:
   return res
     .status(200)
     .json({ message: "Protected data", userId: payload.sub, payload });

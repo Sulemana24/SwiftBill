@@ -12,8 +12,6 @@ export function ToastProvider({ children }) {
     const id = Math.random().toString(36).substring(2, 9);
     const newToast = { ...toast, id };
     setToasts((prevToasts) => [...prevToasts, newToast]);
-
-    // Auto remove after 5 seconds
     setTimeout(() => {
       setToasts((prevToasts) => prevToasts.filter((t) => t.id !== id));
     }, 5000);

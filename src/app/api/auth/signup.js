@@ -1,5 +1,4 @@
-// pages/api/auth/signup.js
-import dbConnect from "../../../lib/mongodb";
+/* import dbConnect from "../../../lib/mongodb";
 import User from "../../../models/User";
 import bcrypt from "bcryptjs";
 import { signToken, setTokenCookie } from "../../../lib/auth";
@@ -20,7 +19,6 @@ export default async function handler(req, res) {
   try {
     await dbConnect();
 
-    // Prevent duplicate users
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(409).json({ error: "Email already in use" });
@@ -35,17 +33,14 @@ export default async function handler(req, res) {
       password: hashed,
     });
 
-    // create token payload (avoid sending password)
     const token = signToken({
       sub: user._id,
       email: user.email,
       name: user.name,
     });
 
-    // Set httpOnly cookie
     setTokenCookie(res, token);
 
-    // return safe user object
     return res.status(201).json({
       user: { id: user._id, name: user.name, email: user.email },
       token,
@@ -55,3 +50,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Internal server error" });
   }
 }
+ */

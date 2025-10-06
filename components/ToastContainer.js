@@ -1,4 +1,3 @@
-// components/ToastContainer.js
 "use client";
 import { useState } from "react";
 import Toast from "./Toast";

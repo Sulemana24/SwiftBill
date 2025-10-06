@@ -1,6 +1,6 @@
 import Footer from "../../components/Footer";
-import Navbar from "../../components/Navbar";
-import Dashboard from "./dashboard";
+/* import Navbar from "../../components/Navbar";
+import Dashboard from "./dashboard"; */
 import Layout from "../../components/Layout";
 
 export default function Home() {

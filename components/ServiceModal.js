@@ -7,7 +7,6 @@ import {
   FaWallet,
   FaCheckCircle,
   FaExclamationTriangle,
-  FaInfoCircle,
 } from "react-icons/fa";
 
 const ServiceModal = ({
@@ -16,7 +15,7 @@ const ServiceModal = ({
   serviceType,
   onPurchase,
   walletBalance = 0,
-  showToast, // Add this prop for toast notifications
+  showToast,
 }) => {
   const [selectedNetwork, setSelectedNetwork] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
@@ -25,6 +24,65 @@ const ServiceModal = ({
   const [electricityType, setElectricityType] = useState("");
   const [amount, setAmount] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validatePhoneNumber = (phoneNumber) => {
+    const cleaned = phoneNumber.replace(/\D/g, "");
+    return cleaned.length === 10 && cleaned.startsWith("0");
+  };
+
+  const validateMeterNumber = (meterNumber) => {
+    const cleaned = meterNumber.replace(/\D/g, "");
+    return cleaned.length === 10;
+  };
+
+  const getPhoneNumberError = (value) => {
+    if (!value) return "Phone number is required";
+    const cleaned = value.replace(/\D/g, "");
+    if (cleaned.length !== 10) return "Phone number must be 10 digits";
+    if (!cleaned.startsWith("0")) return "Phone number must start with 0";
+    return null;
+  };
+
+  const getMeterNumberError = (value) => {
+    if (!value) return "Meter number is required";
+    const cleaned = value.replace(/\D/g, "");
+    if (cleaned.length !== 10) return "Meter number must be 10 digits";
+    return null;
+  };
+
+  const handleMobileNumberChange = (value) => {
+    const cleaned = value.replace(/\D/g, "").slice(0, 10);
+    setMobileNumber(cleaned);
+    if (errors.mobileNumber) {
+      setErrors((prev) => ({ ...prev, mobileNumber: null }));
+    }
+  };
+
+  const handleMeterNumberChange = (value) => {
+    const cleaned = value.replace(/\D/g, "").slice(0, 10);
+    setMeterNumber(cleaned);
+    if (errors.meterNumber) {
+      setErrors((prev) => ({ ...prev, meterNumber: null }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (serviceType === "internet" || serviceType === "sms") {
+      const phoneError = getPhoneNumberError(mobileNumber);
+      if (phoneError) newErrors.mobileNumber = phoneError;
+    }
+
+    if (serviceType === "electricity") {
+      const meterError = getMeterNumberError(meterNumber);
+      if (meterError) newErrors.meterNumber = meterError;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   // Network-specific plans
   const networkPlans = {
@@ -90,6 +148,17 @@ const ServiceModal = ({
   const networks = ["MTN", "Telecel", "AirtelTigo"];
 
   const handlePurchase = async () => {
+    if (!validateForm()) {
+      if (showToast) {
+        showToast({
+          type: "error",
+          title: "Validation Error",
+          message: "Please fix the errors in the form before proceeding",
+          icon: FaExclamationTriangle,
+        });
+      }
+      return;
+    }
     const purchaseAmount = getPurchaseAmount();
 
     // Check if user has sufficient balance
@@ -126,9 +195,9 @@ const ServiceModal = ({
       const purchaseData = {
         serviceType,
         network: selectedNetwork,
-        mobileNumber,
+        mobileNumber: mobileNumber.replace(/\D/g, ""),
         plan: selectedPlan,
-        meterNumber,
+        meterNumber: meterNumber.replace(/\D/g, ""),
         electricityType,
         amount: purchaseAmount,
         timestamp: new Date().toISOString(),
@@ -138,7 +207,6 @@ const ServiceModal = ({
       const result = await onPurchase(purchaseData);
 
       if (result && result.success) {
-        // Show success toast
         if (showToast) {
           showToast({
             type: "success",
@@ -182,6 +250,7 @@ const ServiceModal = ({
     setElectricityType("");
     setAmount("");
     setIsProcessing(false);
+    setErrors({});
   };
 
   const getSelectedPlanDetails = () => {
@@ -208,9 +277,17 @@ const ServiceModal = ({
 
   const isFormValid = () => {
     if (serviceType === "electricity") {
-      return electricityType && meterNumber && amount && parseFloat(amount) > 0;
+      return (
+        electricityType &&
+        meterNumber &&
+        amount &&
+        parseFloat(amount) > 0 &&
+        !errors.meterNumber
+      );
     }
-    return selectedNetwork && mobileNumber && selectedPlan;
+    return (
+      selectedNetwork && mobileNumber && selectedPlan && !errors.mobileNumber
+    );
   };
 
   const hasSufficientBalance = () => {
@@ -283,16 +360,25 @@ const ServiceModal = ({
               htmlFor="mobile"
               className="block text-sm font-medium text-gray-700"
             >
-              Mobile Number
+              Mobile Number *
             </label>
             <input
               id="mobile"
               type="tel"
-              placeholder="0XX XXX XXXX"
+              placeholder="0241234567"
               value={mobileNumber}
-              onChange={(e) => setMobileNumber(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+              onChange={(e) => handleMobileNumberChange(e.target.value)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black ${
+                errors.mobileNumber ? "border-red-500" : "border-gray-300"
+              }`}
+              maxLength={10}
             />
+            {errors.mobileNumber && (
+              <p className="text-red-500 text-xs mt-1">{errors.mobileNumber}</p>
+            )}
+            <p className="text-gray-500 text-xs">
+              Enter 10-digit number starting with 0
+            </p>
           </div>
         </div>
 
@@ -410,16 +496,25 @@ const ServiceModal = ({
               htmlFor="mobile"
               className="block text-sm font-medium text-gray-700"
             >
-              Mobile Number
+              Mobile Number *
             </label>
             <input
               id="mobile"
               type="tel"
-              placeholder="0XX XXX XXXX"
+              placeholder="0241234567"
               value={mobileNumber}
-              onChange={(e) => setMobileNumber(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+              onChange={(e) => handleMobileNumberChange(e.target.value)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black ${
+                errors.mobileNumber ? "border-red-500" : "border-gray-300"
+              }`}
+              maxLength={10}
             />
+            {errors.mobileNumber && (
+              <p className="text-red-500 text-xs mt-1">{errors.mobileNumber}</p>
+            )}
+            <p className="text-gray-500 text-xs">
+              Enter 10-digit number starting with 0
+            </p>
           </div>
         </div>
 
