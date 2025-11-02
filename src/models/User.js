@@ -15,6 +15,21 @@ const UserSchema = new mongoose.Schema(
 
     balance: { type: Number, default: 0 },
 
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    verificationCode: {
+      type: String,
+      default: null,
+    },
+
+    verificationCodeExpires: {
+      type: Date,
+      default: null,
+    },
+
     orders: [
       {
         type: {

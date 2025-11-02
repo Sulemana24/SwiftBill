@@ -1,36 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+📌 Project Overview
 
-## Getting Started
+SwiftBill (Preview) — A modern, user-friendly billing & payments web application built to streamline daily financial tasks, from bill payments to transfers. Designed with a clean interface, bold gradients, and intuitive interactions to make finances feel simple and accessible.
 
-First, run the development server:
+✨ Key Highlights
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Built with Next.js + Tailwind CSS, delivering optimized performance and responsive layouts.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Emphasis on UI/UX: hero section with gradient, call-to-action buttons, illustrative icons and cards.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Structured content: mission section, stats grid, features grid — all built to communicate value clearly and visually.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Component-driven architecture: reusable design for hero, cards, feature grid makes the codebase maintainable and scalable.
 
-## Learn More
+Deployment handled via Vercel for seamless CI/CD and fast global delivery.
 
-To learn more about Next.js, take a look at the following resources:
+🚀 Outcomes & Skills Demonstrated
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Mastery of Next.js app structure: pages/ or app/ routing, layout files, and static content sections.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Tailwind-powered design: handling typography, spacing, grid layouts, and responsive breakpoints with utility classes.
 
-## Deploy on Vercel
+Visual storytelling: converts user flow into card visuals (features, stats) and coherent page sections.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deployment & environment handling for real-world readiness.

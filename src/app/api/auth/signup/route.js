@@ -1,7 +1,9 @@
 import dbConnect from "@/lib/mongodb";
 import User from "../../../../models/User";
 import { generateToken } from "@/lib/auth";
+import { sendVerificationEmail } from "@/lib/emailService";
 import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -51,32 +53,61 @@ export async function POST(req) {
       );
     }
 
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Generate 6-digit verification code
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+    const verificationCodeExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    // Create user with verification fields
     const user = new User({
       name: fullName,
       email: email.toLowerCase().trim(),
-      password,
+      password: hashedPassword,
       balance: 0,
       orders: [],
+      isVerified: false,
+      verificationCode,
+      verificationCodeExpires,
     });
 
     await user.save();
 
-    const token = generateToken({ id: user._id, email: user.email });
+    // Send verification email
+    const emailSent = await sendVerificationEmail(
+      email,
+      verificationCode,
+      fullName
+    );
 
-    const res = NextResponse.json({
-      user: { id: user._id, name: user.name, email: user.email },
-      token,
-    });
+    if (!emailSent) {
+      // If email fails, delete the user and return error
+      await User.findByIdAndDelete(user._id);
+      return NextResponse.json(
+        { error: "Failed to send verification email. Please try again." },
+        { status: 500 }
+      );
+    }
 
-    res.cookies.set("token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
-      secure: process.env.NODE_ENV === "production",
-    });
-
-    return res;
+    // Don't generate token or set cookie since user isn't verified yet
+    // Return success response without authentication
+    return NextResponse.json(
+      {
+        success: true,
+        message:
+          "Account created successfully! Please check your email for the verification code.",
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          isVerified: user.isVerified,
+        },
+      },
+      { status: 201 }
+    );
   } catch (err) {
     console.error("Signup error details:", err.message, err.stack);
     return NextResponse.json(

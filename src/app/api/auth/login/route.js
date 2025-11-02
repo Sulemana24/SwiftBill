@@ -46,7 +46,17 @@ export async function POST(req) {
         ? user.password.substring(0, 10) + "..."
         : "none",
       isHashed: user.password ? user.password.startsWith("$2b$") : false,
+      isVerified: user.isVerified, // Add this line
     });
+
+    // Check if email is verified
+    if (!user.isVerified) {
+      console.log("❌ User email not verified:", cleanEmail);
+      return NextResponse.json(
+        { error: "Please verify your email before logging in" },
+        { status: 401 }
+      );
+    }
 
     // Use bcrypt.compare directly (same method used in signup)
     const isMatch = await bcrypt.compare(password, user.password);

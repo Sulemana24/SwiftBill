@@ -8,6 +8,7 @@ import {
   FaUser,
   FaUserClock,
   FaCheckCircle,
+  FaArrowLeft,
 } from "react-icons/fa";
 import Image from "next/image";
 
@@ -23,6 +24,10 @@ const LoginForm = ({ onLogin, onSignup, onGuestLogin }) => {
   });
   const [signupSuccess, setSignupSuccess] = useState(false);
   const [signedUpEmail, setSignedUpEmail] = useState("");
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -85,30 +90,86 @@ const LoginForm = ({ onLogin, onSignup, onGuestLogin }) => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
-        // Show success message and redirect to login
+        // Show verification form instead of auto-redirecting
         setSignupSuccess(true);
         setSignedUpEmail(formData.email);
+        setShowVerification(true);
 
-        // Clear form
+        // Clear form but keep email for verification
         setFormData({
-          email: "",
+          email: formData.email, // Keep email for potential login after verification
           password: "",
           confirmPassword: "",
           fullName: "",
         });
-
-        // Auto-switch to login after 2 seconds
-        setTimeout(() => {
-          setIsLogin(true);
-          setSignupSuccess(false);
-          // Pre-fill the email in login form
-          setFormData((prev) => ({ ...prev, email: signedUpEmail }));
-        }, 2000);
       }
     } catch (err) {
       alert(err.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleVerification = async (e) => {
+    e.preventDefault();
+
+    if (verificationCode.length !== 6) {
+      alert("Please enter the 6-digit verification code.");
+      return;
+    }
+
+    setIsVerifying(true);
+
+    try {
+      const res = await fetch("/api/auth/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: signedUpEmail,
+          code: verificationCode,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      // Verification successful - show success and redirect to login
+      setSignupSuccess(true);
+      setShowVerification(false);
+
+      // Auto-redirect to login after 2 seconds
+      setTimeout(() => {
+        setSignupSuccess(false);
+        setIsLogin(true);
+        setVerificationCode("");
+        // Pre-fill email in login form
+        setFormData((prev) => ({ ...prev, email: signedUpEmail }));
+      }, 2000);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setIsResending(true);
+
+    try {
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: signedUpEmail }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      alert("New verification code sent! Please check your email.");
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -125,6 +186,7 @@ const LoginForm = ({ onLogin, onSignup, onGuestLogin }) => {
       fullName: "",
     });
     setSignupSuccess(false);
+    setShowVerification(false);
   };
 
   const handleGuestAccess = () => {
@@ -133,8 +195,106 @@ const LoginForm = ({ onLogin, onSignup, onGuestLogin }) => {
     }
   };
 
-  // Success message component
-  if (signupSuccess) {
+  const goBackToSignup = () => {
+    setShowVerification(false);
+    setSignupSuccess(false);
+    setVerificationCode("");
+  };
+
+  // Verification Form
+  if (showVerification) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-lg border border-blue-100 p-8">
+            <button
+              onClick={goBackToSignup}
+              className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-200"
+            >
+              <FaArrowLeft className="mr-2" />
+              Back to Sign Up
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="bg-blue-100 p-3 rounded-full inline-flex mb-4">
+                <FaEnvelope className="h-8 w-8 text-blue-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Verify Your Email
+              </h2>
+              <p className="text-gray-600 mb-2">
+                We sent a 6-digit verification code to
+              </p>
+              <p className="text-blue-600 font-semibold">{signedUpEmail}</p>
+              <p className="text-sm text-gray-500 mt-2">
+                The code will expire in 15 minutes
+              </p>
+            </div>
+
+            <form onSubmit={handleVerification} className="space-y-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 text-center">
+                  Enter Verification Code
+                </label>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={verificationCode}
+                  onChange={(e) =>
+                    setVerificationCode(
+                      e.target.value.replace(/\D/g, "").slice(0, 6)
+                    )
+                  }
+                  className="block w-full text-center text-2xl font-bold tracking-widest px-3 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-300"
+                  placeholder="000000"
+                  autoFocus
+                />
+                <p className="text-xs text-gray-500 text-center">
+                  Enter the 6-digit code sent to your email
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isVerifying || verificationCode.length !== 6}
+                className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-800 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isVerifying ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Verifying...
+                  </>
+                ) : (
+                  "Verify Email"
+                )}
+              </button>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={handleResendCode}
+                  disabled={isResending}
+                  className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                >
+                  {isResending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-1 inline-block"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    "Didn't receive the code? Resend"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Success message component (after verification)
+  if (signupSuccess && !showVerification) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
@@ -145,10 +305,10 @@ const LoginForm = ({ onLogin, onSignup, onGuestLogin }) => {
               </div>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Account Created Successfully!
+              Email Verified Successfully!
             </h2>
             <p className="text-gray-600 mb-6">
-              Your account has been created. Redirecting you to login...
+              Your email has been verified. Redirecting you to login...
             </p>
             <div className="flex justify-center">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>

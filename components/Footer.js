@@ -38,7 +38,7 @@ export default function Footer() {
             © {new Date().getFullYear()} SwiftBill. All rights reserved.
           </p>
           <p className="text-center text-sm text-gray-200">
-            Made with ❤️ by Simdi Technologies
+            Made with ❤️ by Simli Technologies
           </p>
         </div>
       </div>
