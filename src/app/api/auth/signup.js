@@ -1,52 +1,51 @@
-import dbConnect from "../../../lib/mongodb";
-import User from "../../../models/User";
-import bcrypt from "bcryptjs";
-import { signToken, setTokenCookie } from "../../../lib/auth";
+import dbConnect from "@/lib/mongodb";
+import User from "@/models/User";
+import crypto from "crypto";
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const { name, email, password } = req.body ?? {};
-
-  if (!name || !email || !password) {
-    return res
-      .status(400)
-      .json({ error: "Name, email and password are required" });
-  }
-
+export async function POST(req) {
   try {
-    await dbConnect();
+    const { fullName, email, password } = await req.json();
 
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(409).json({ error: "Email already in use" });
+    if (!fullName || !email || !password) {
+      return new Response(JSON.stringify({ error: "All fields required" }), {
+        status: 400,
+      });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashed = await bcrypt.hash(password, salt);
+    await dbConnect();
 
+    const existing = await User.findOne({ email: email.toLowerCase().trim() });
+    if (existing) {
+      return new Response(JSON.stringify({ error: "Email already in use" }), {
+        status: 409,
+      });
+    }
+
+    const verificationCode = crypto.randomInt(100000, 999999).toString();
+    const verificationCodeExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+
+    // ✅ Do NOT hash manually. Let Mongoose pre-save hook handle it.
     const user = await User.create({
-      name,
-      email,
-      password: hashed,
+      name: fullName, // matches your model field
+      email: email.toLowerCase().trim(),
+      password, // plain text — model hook will hash it once
+      verificationCode,
+      verificationCodeExpires,
     });
 
-    const token = signToken({
-      sub: user._id,
-      email: user.email,
-      name: user.name,
-    });
+    // ⚠️ Send email here (e.g. via nodemailer)
+    console.log(`Verification code for ${email}: ${verificationCode}`);
 
-    setTokenCookie(res, token);
-
-    return res.status(201).json({
-      user: { id: user._id, name: user.name, email: user.email },
-      token,
-    });
+    return new Response(
+      JSON.stringify({
+        message: "Signup successful. Check your email for verification code.",
+      }),
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Signup error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+    });
   }
 }

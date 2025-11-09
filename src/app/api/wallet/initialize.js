@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       "https://api.paystack.co/transaction/initialize",
       {
         email,
-        amount: amount * 100, // Paystack expects kobo
+        amount: amount * 100,
         currency: "GHS",
         callback_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/paystack/callback?userId=${userId}`,
       },

@@ -88,39 +88,37 @@ const ServiceModal = ({
   const networkPlans = {
     internet: {
       MTN: [
-        { id: "mtn-1gb", name: "1GB Data", price: 5.0 },
-        { id: "mtn-2gb", name: "2GB Data", price: 10.0 },
-        { id: "mtn-3gb", name: "3GB Data", price: 14.5 },
-        { id: "mtn-4gb", name: "4GB Data", price: 19.0 },
-        { id: "mtn-5gb", name: "5GB Data", price: 24.0 },
-        { id: "mtn-6gb", name: "6GB Data", price: 28.0 },
-        { id: "mtn-8gb", name: "8GB Data", price: 35.5 },
-        { id: "mtn-10gb", name: "10GB Data", price: 43.0 },
-        { id: "mtn-15gb", name: "15GB Data", price: 62.0 },
-        { id: "mtn-20gb", name: "20GB Data", price: 82.0 },
-        { id: "mtn-25gb", name: "25GB Data", price: 103.0 },
-        { id: "mtn-30gb", name: "30GB Data", price: 123.0 },
-        { id: "mtn-40gb", name: "40GB Data", price: 161.0 },
-        { id: "mtn-50gb", name: "50GB Data", price: 199.0 },
+        { id: "mtn-1gb", name: "1GB Data", price: 5.5 },
+        { id: "mtn-2gb", name: "2GB Data", price: 11.0 },
+        { id: "mtn-3gb", name: "3GB Data", price: 16.0 },
+        { id: "mtn-4gb", name: "4GB Data", price: 20.5 },
+        { id: "mtn-5gb", name: "5GB Data", price: 26.0 },
+        { id: "mtn-6gb", name: "6GB Data", price: 30.0 },
+        { id: "mtn-8gb", name: "8GB Data", price: 38.0 },
+        { id: "mtn-10gb", name: "10GB Data", price: 45.0 },
+        { id: "mtn-15gb", name: "15GB Data", price: 66.0 },
+        { id: "mtn-20gb", name: "20GB Data", price: 87.0 },
+        { id: "mtn-25gb", name: "25GB Data", price: 110.0 },
+        { id: "mtn-30gb", name: "30GB Data", price: 130.0 },
+        { id: "mtn-40gb", name: "40GB Data", price: 170.0 },
+        { id: "mtn-50gb", name: "50GB Data", price: 208.0 },
       ],
       Telecel: [
-        { id: "telecel-1gb", name: "1GB Data", price: 4.5 },
+        /*  { id: "telecel-1gb", name: "1GB Data", price: 4.5 },
         { id: "telecel-2gb", name: "2GB Data", price: 8.5 },
         { id: "telecel-5gb", name: "5GB Data", price: 18.0 },
-        { id: "telecel-10gb", name: "10GB Data", price: 32.0 },
+        { id: "telecel-10gb", name: "10GB Data", price: 32.0 }, */
       ],
       AirtelTigo: [
-        { id: "airtel-1gb", name: "1GB Data", price: 4.5 },
-        { id: "airtel-2gb", name: "2GB Data", price: 8.5 },
-        { id: "airtel-3gb", name: "3GB Data", price: 12.5 },
-        { id: "airtel-4gb", name: "4GB Data", price: 17.0 },
-        { id: "airtel-5gb", name: "5GB Data", price: 20.5 },
-        { id: "airtel-6gb", name: "6GB Data", price: 24.5 },
-        { id: "airtel-7gb", name: "7GB Data", price: 28.5 },
-        { id: "airtel-8gb", name: "8GB Data", price: 32.5 },
-        { id: "airtel-9gb", name: "9GB Data", price: 37.0 },
-        { id: "airtel-10gb", name: "10GB Data", price: 30.0 },
-        { id: "airtel-12gb", name: "12GB Data", price: 48.0 },
+        { id: "airtel-1gb", name: "1GB Data", price: 5.0 },
+        { id: "airtel-2gb", name: "2GB Data", price: 10.0 },
+        { id: "airtel-3gb", name: "3GB Data", price: 14.0 },
+        { id: "airtel-4gb", name: "4GB Data", price: 18.0 },
+        { id: "airtel-5gb", name: "5GB Data", price: 22.0 },
+        { id: "airtel-6gb", name: "6GB Data", price: 26.0 },
+        { id: "airtel-7gb", name: "7GB Data", price: 29.0 },
+        { id: "airtel-8gb", name: "8GB Data", price: 34.0 },
+        { id: "airtel-10gb", name: "10GB Data", price: 43.0 },
       ],
     },
     sms: {
@@ -145,7 +143,51 @@ const ServiceModal = ({
     },
   };
 
+  const planToMB = {
+    "mtn-1gb": 1000,
+    "mtn-2gb": 2000,
+    "mtn-3gb": 3000,
+    "mtn-4gb": 4000,
+    "mtn-5gb": 5000,
+    "mtn-6gb": 6000,
+    "mtn-8gb": 8000,
+    "mtn-10gb": 10000,
+    "mtn-15gb": 15000,
+    "mtn-20gb": 20000,
+    "mtn-25gb": 25000,
+    "mtn-30gb": 30000,
+    "mtn-40gb": 40000,
+    "mtn-50gb": 50000,
+
+    "telecel-1gb": 1000,
+    "telecel-2gb": 2000,
+    "telecel-5gb": 5000,
+    "telecel-10gb": 10000,
+
+    "airtel-1gb": 1000,
+    "airtel-2gb": 2000,
+    "airtel-3gb": 3000,
+    "airtel-4gb": 4000,
+    "airtel-5gb": 5000,
+    "airtel-6gb": 6000,
+    "airtel-7gb": 7000,
+    "airtel-8gb": 8000,
+    "airtel-10gb": 10000,
+  };
+
   const networks = ["MTN", "Telecel", "AirtelTigo"];
+
+  const handlePurchaseClick = async () => {
+    if (!selectedNetwork || !selectedPlan || !mobileNumber) {
+      showToast?.({
+        type: "error",
+        title: "Missing Information",
+        message: "Please fill in all required fields",
+        icon: FaExclamationTriangle,
+      });
+      return;
+    }
+  };
 
   const handlePurchase = async () => {
     if (!validateForm()) {
@@ -159,6 +201,7 @@ const ServiceModal = ({
       }
       return;
     }
+
     const purchaseAmount = getPurchaseAmount();
 
     // Check if user has sufficient balance

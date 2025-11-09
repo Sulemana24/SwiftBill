@@ -1,38 +1,60 @@
-import dbConnect from "../../../lib/mongodb";
-import User from "../../../models/User";
-import bcrypt from "bcryptjs";
-import { signToken, setTokenCookie } from "../../../lib/auth";
+import dbConnect from "@/lib/mongodb";
+import User from "@/models/User";
+import { signToken, setTokenCookie } from "@/lib/auth";
 
-export default async function handler(req, res) {
-  if (req.method !== "POST")
-    return res.status(405).json({ error: "Method not allowed" });
-
-  const { email, password } = req.body ?? {};
-  if (!email || !password)
-    return res.status(400).json({ error: "Email and password required" });
-
+export async function POST(req) {
   try {
-    await dbConnect();
-    const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+    const { email, password } = await req.json();
 
-    const matched = await bcrypt.compare(password, user.password);
-    if (!matched) return res.status(401).json({ error: "Invalid credentials" });
+    if (!email || !password) {
+      return new Response(
+        JSON.stringify({ error: "Email and password required" }),
+        { status: 400 }
+      );
+    }
+
+    await dbConnect();
+    const emailLower = email.trim().toLowerCase();
+    const user = await User.findOne({ email: emailLower });
+
+    if (!user)
+      return new Response(JSON.stringify({ error: "Invalid credentials" }), {
+        status: 401,
+      });
+
+    if (!user.isVerified) {
+      return new Response(
+        JSON.stringify({ error: "Please verify your email before logging in" }),
+        { status: 403 }
+      );
+    }
+
+    const matched = await user.comparePassword(password);
+    if (!matched)
+      return new Response(JSON.stringify({ error: "Invalid credentials" }), {
+        status: 401,
+      });
 
     const token = signToken({
       sub: user._id,
       email: user.email,
-      name: user.name,
+      fullName: user.fullName,
     });
+
+    const res = new Response(
+      JSON.stringify({
+        user: { id: user._id, name: user.fullName, email: user.email },
+        token,
+      }),
+      { status: 200 }
+    );
 
     setTokenCookie(res, token);
-
-    return res.status(200).json({
-      user: { id: user._id, name: user.name, email: user.email },
-      token,
-    });
+    return res;
   } catch (err) {
     console.error("Login error:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+    });
   }
 }

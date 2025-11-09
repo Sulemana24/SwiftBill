@@ -97,7 +97,7 @@ const LoginForm = ({ onLogin, onSignup, onGuestLogin }) => {
 
         // Clear form but keep email for verification
         setFormData({
-          email: formData.email, // Keep email for potential login after verification
+          email: formData.email,
           password: "",
           confirmPassword: "",
           fullName: "",
@@ -180,7 +180,7 @@ const LoginForm = ({ onLogin, onSignup, onGuestLogin }) => {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setFormData({
-      email: isLogin ? formData.email : "", // Keep email when switching from login to signup
+      email: isLogin ? formData.email : "",
       password: "",
       confirmPassword: "",
       fullName: "",
@@ -541,19 +541,6 @@ const LoginForm = ({ onLogin, onSignup, onGuestLogin }) => {
                 purchases.
               </p>
             </div>
-
-            {!isLogin && (
-              <p className="text-xs text-gray-500 text-center mt-2">
-                By creating an account, you agree to our{" "}
-                <a href="#" className="text-blue-700 hover:text-blue-800">
-                  Terms of Service
-                </a>{" "}
-                and{" "}
-                <a href="#" className="text-blue-700 hover:text-blue-800">
-                  Privacy Policy
-                </a>
-              </p>
-            )}
           </form>
         </div>
 

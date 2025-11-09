@@ -257,6 +257,15 @@ export default function Dashboard({
   const [selectedService, setSelectedService] = useState(null);
   const { showToast } = useToast();
 
+  useEffect(() => {
+    if (!initialUser) {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    }
+  }, [initialUser]);
+
   // ---------- Time-based Greeting Function ----------
   const getGreetingWithEmoji = () => {
     const hour = new Date().getHours();

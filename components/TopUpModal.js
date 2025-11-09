@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { FaWallet } from "react-icons/fa";
+import { useToast } from "./Toast";
 
 const quickAmounts = [10, 25, 50, 100];
 
@@ -15,7 +16,7 @@ export default function TopUpModal({
   const [amount, setAmount] = useState("");
   const [selectedQuick, setSelectedQuick] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  const { showToast } = useToast();
   if (!isOpen) return null;
 
   const handleQuickSelect = (value) => {
@@ -30,16 +31,29 @@ export default function TopUpModal({
 
   const handleTopUp = async () => {
     const topUpAmount = parseFloat(amount);
-    if (!topUpAmount || !userEmail || !userId) {
-      console.log({ topUpAmount, userEmail, userId });
-      alert("Missing required information!");
+
+    // 🔒 Check authentication
+    if (!userEmail || !userId) {
+      showToast({
+        type: "error",
+        title: "Not Logged In",
+        message: "Please log in or sign up to top up your wallet.",
+      });
+      return;
+    }
+
+    if (!topUpAmount || topUpAmount < 10) {
+      showToast({
+        type: "error",
+        title: "Invalid Amount",
+        message: "Minimum top-up amount is GHC10.",
+      });
       return;
     }
 
     setLoading(true);
 
     try {
-      // Initialize Paystack payment
       const res = await fetch("/api/paystack/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -55,12 +69,20 @@ export default function TopUpModal({
       if (data.authorization_url) {
         window.location.href = data.authorization_url;
       } else {
-        alert(data.error || "Payment initialization failed.");
+        showToast({
+          type: "error",
+          title: "Payment Failed",
+          message: data.error || "Payment initialization failed.",
+        });
         setLoading(false);
       }
     } catch (err) {
       console.error(err);
-      alert("Server error!");
+      showToast({
+        type: "error",
+        title: "Server Error",
+        message: "Something went wrong. Please try again later.",
+      });
       setLoading(false);
     }
   };

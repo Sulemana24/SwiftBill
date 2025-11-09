@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/database";
 import Transaction from "@/models/Transaction";
 import User from "@/models/User";
+import { initiateTransaction } from "@/lib/fastyApi";
+import { protect } from "@/lib/auth"; // assuming you have this
 
 export async function POST(request) {
   try {
@@ -26,7 +28,27 @@ export async function POST(request) {
       );
     }
 
-    // Create transaction
+    // ✅ Step 1: Call FastyData API
+    const reference = `TX-${Date.now()}`;
+
+    const apiResponse = await initiateTransaction({
+      network: network.toUpperCase(),
+      number: recipient,
+      reference,
+      packageValue: amount, // or adjust logic if amount != MB
+    });
+
+    if (apiResponse.code !== 200) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: apiResponse.message || "FastyData API failed",
+        },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Step 2: Save transaction in your DB
     const transaction = await Transaction.create({
       user: user._id,
       type,
@@ -36,15 +58,15 @@ export async function POST(request) {
       description,
       meterNumber,
       electricityType,
+      reference,
       status: "completed",
     });
 
-    // Update user balance
+    // ✅ Step 3: Deduct user balance
     await User.findByIdAndUpdate(user._id, {
       $inc: { walletBalance: -amount },
     });
 
-    // Get updated user
     const updatedUser = await User.findById(user._id);
 
     return NextResponse.json(

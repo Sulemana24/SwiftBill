@@ -46,7 +46,7 @@ export async function POST(req) {
         ? user.password.substring(0, 10) + "..."
         : "none",
       isHashed: user.password ? user.password.startsWith("$2b$") : false,
-      isVerified: user.isVerified, // Add this line
+      isVerified: user.isVerified,
     });
 
     // Check if email is verified

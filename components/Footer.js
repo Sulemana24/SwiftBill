@@ -17,14 +17,17 @@ export default function Footer() {
 
           {/* Social Icons */}
           <div className="flex space-x-6 mt-4 sm:mt-0 ">
-            <Link href="https://facebook.com" target="_blank">
+            <Link
+              href="https://web.facebook.com/iddrisu.suleman.56"
+              target="_blank"
+            >
               <FaFacebookF className="bg-yellow-300 text-black border-white rounded-full p-1 w-10 h-7 hover:shadow-lg" />
             </Link>
-            <Link href="https://twitter.com" target="_blank">
+            <Link href="https://x.com/ISBindawdi?s=09" target="_blank">
               <FaTwitter className="bg-yellow-300 text-black border-white rounded-full p-1 w-10 h-7" />
             </Link>
-            <Link href="https://linkedin.com" target="_blank">
-              <FaWhatsapp className="bg-yellow-300 text-black border-white rounded-full p-1 w-10 h-7" />
+            <Link href="https://wa.me/233551333780" target="_blank">
+              <FaWhatsapp className="bg-yellow-300 text-black border-white rounded-full p-1 w-10 h-7 hover:shadow-lg" />
             </Link>
           </div>
         </div>

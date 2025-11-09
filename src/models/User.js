@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 
 const UserSchema = new mongoose.Schema(
   {
-    name: { type: String, default: "" },
+    fullName: { type: String, required: true, trim: true },
     email: {
       type: String,
       required: true,
@@ -12,39 +12,19 @@ const UserSchema = new mongoose.Schema(
       trim: true,
     },
     password: { type: String, required: true },
-
     balance: { type: Number, default: 0 },
-
-    isVerified: {
-      type: Boolean,
-      default: false,
-    },
-
-    verificationCode: {
-      type: String,
-      default: null,
-    },
-
-    verificationCodeExpires: {
-      type: Date,
-      default: null,
-    },
-
+    isVerified: { type: Boolean, default: false },
+    verificationCode: { type: String, default: null },
+    verificationCodeExpires: { type: Date, default: null },
     orders: [
       {
         type: {
           type: String,
           enum: ["internet", "sms", "electricity"],
         },
-        description: {
-          type: String,
-        },
-        amount: {
-          type: Number,
-        },
-        recipient: {
-          type: String,
-        },
+        description: String,
+        amount: Number,
+        recipient: String,
         network: {
           type: String,
           enum: ["MTN", "Telecel", "AirtelTigo", null],
@@ -55,13 +35,8 @@ const UserSchema = new mongoose.Schema(
           enum: ["completed", "processing", "failed"],
           default: "completed",
         },
-        date: {
-          type: Date,
-          default: Date.now,
-        },
-        orderNumber: {
-          type: String,
-        },
+        date: { type: Date, default: Date.now },
+        orderNumber: String,
         productId: String,
         productName: String,
         price: Number,
@@ -72,9 +47,11 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Hash password before save (only if it's new or modified)
+// Hash password only if it's new or modified
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
+  if (this.password.startsWith("$2a$")) return next(); // already hashed
+
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
@@ -84,11 +61,10 @@ UserSchema.pre("save", async function (next) {
   }
 });
 
-// Instance method to compare password
+// Compare password
 UserSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Prevent model overwrite upon hot reload in dev
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
 export default User;

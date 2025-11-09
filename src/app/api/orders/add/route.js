@@ -1,86 +1,95 @@
 import dbConnect from "@/lib/mongodb";
-import User from "../../../../models/User";
+import User from "@/models/User";
+import Transaction from "@/models/Transaction";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
     await dbConnect();
     const {
-      userId,
-      type,
-      description,
-      amount,
-      recipient,
-      status,
-      date,
+      serviceType,
       network,
-      orderNumber,
-    } = await req.json();
+      recipient,
+      description,
+      package: packageMB,
+      amount,
+      reference,
+      userId,
+    } = (await req.body) ? await req.body : await req.json();
 
-    console.log("🔄 Received order data:", {
-      userId,
-      type,
-      description,
-      amount,
-      recipient,
-      status,
-      network,
-      orderNumber,
-    });
-    if (!userId || !type || !description || !amount || !recipient || !status) {
+    if (!network || !recipient || !packageMB || !amount || !reference) {
       return NextResponse.json(
-        { error: "All order fields are required" },
+        { success: false, message: "Missing required fields" },
         { status: 400 }
       );
     }
 
+    // Find user
     const user = await User.findById(userId);
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    console.log("🔄 User found, current balance:", user.balance);
-
-    if (user.balance < amount) {
+    if (!user)
       return NextResponse.json(
-        { error: "Insufficient balance" },
+        { success: false, message: "User not found" },
+        { status: 404 }
+      );
+
+    if (user.walletBalance < amount) {
+      return NextResponse.json(
+        { success: false, message: "Insufficient balance" },
         { status: 400 }
       );
     }
 
-    const newOrder = {
-      type,
-      description,
-      amount,
+    // ✅ Call FastyData API
+    const apiResponse = await fetch("https://fastydata.com/api_init", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.FASTY_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        network,
+        number: recipient,
+        reference,
+        package: packageMB,
+      }),
+    });
+
+    const fastyResult = await apiResponse.json();
+
+    if (fastyResult.code !== 200) {
+      return NextResponse.json(
+        { success: false, message: fastyResult.message || "Fasty API error" },
+        { status: 400 }
+      );
+    }
+
+    // Save transaction in MongoDB
+    const transaction = await Transaction.create({
+      user: user._id,
+      type: serviceType,
+      network,
       recipient,
-      network: network || null,
-      status,
-      date: date || new Date(),
-      orderNumber:
-        orderNumber || `SWI${Math.floor(100000 + Math.random() * 900000)}`,
-      productId: `SWI${Math.floor(100000 + Math.random() * 900000)}`,
-      productName: description,
-      price: amount,
-      quantity: 1,
-    };
+      description,
+      packageMB,
+      reference,
+      amount,
+      status: "completed",
+    });
 
-    console.log("🔄 Creating new order:", newOrder);
-    user.orders.push(newOrder);
-    user.balance -= amount;
-
-    console.log("🔄 New user balance:", user.balance);
-
+    // Deduct user wallet
+    user.walletBalance -= amount;
     await user.save();
 
-    console.log("✅ Order saved successfully");
-
     return NextResponse.json({
-      message: "Order added successfully",
-      order: newOrder,
-      balance: user.balance,
+      success: true,
+      transaction,
+      walletBalance: user.walletBalance,
     });
   } catch (err) {
-    console.error("❌ Add order error:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    console.error("Initiate purchase error:", err);
+    return NextResponse.json(
+      { success: false, message: err.message },
+      { status: 500 }
+    );
   }
 }
