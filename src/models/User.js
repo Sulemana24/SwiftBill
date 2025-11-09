@@ -16,6 +16,8 @@ const UserSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false },
     verificationCode: { type: String, default: null },
     verificationCodeExpires: { type: Date, default: null },
+    resetToken: { type: String, default: null },
+    resetTokenExpiry: { type: Date, default: null },
     orders: [
       {
         type: {
@@ -47,10 +49,12 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Hash password only if it's new or modified
+// Hash password if new or modified
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  if (this.password.startsWith("$2a$")) return next(); // already hashed
+  // Check for both $2a$ and $2b$ to prevent double hashing
+  if (this.password.startsWith("$2a$") || this.password.startsWith("$2b$"))
+    return next();
 
   try {
     const salt = await bcrypt.genSalt(10);
@@ -61,7 +65,7 @@ UserSchema.pre("save", async function (next) {
   }
 });
 
-// Compare password
+// Compare password method
 UserSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };

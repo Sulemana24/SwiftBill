@@ -11,6 +11,7 @@ import {
   FaArrowLeft,
 } from "react-icons/fa";
 import Image from "next/image";
+import ForgotPassword from "./ForgotPassword";
 
 const LoginForm = ({ onLogin, onSignup, onGuestLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -109,6 +110,8 @@ const LoginForm = ({ onLogin, onSignup, onGuestLogin }) => {
       setIsLoading(false);
     }
   };
+
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const handleVerification = async (e) => {
     e.preventDefault();
@@ -318,6 +321,9 @@ const LoginForm = ({ onLogin, onSignup, onGuestLogin }) => {
       </div>
     );
   }
+  if (showForgotPassword) {
+    return <ForgotPassword onBack={() => setShowForgotPassword(false)} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
@@ -500,6 +506,10 @@ const LoginForm = ({ onLogin, onSignup, onGuestLogin }) => {
                 <div className="text-sm">
                   <a
                     href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowForgotPassword(true);
+                    }}
                     className="font-medium text-blue-700 hover:text-blue-800"
                   >
                     Forgot password?

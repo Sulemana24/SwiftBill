@@ -1,73 +1,76 @@
 import dbConnect from "@/lib/mongodb";
-import User from "../../../../models/User";
-import { sendVerificationEmail } from "@/lib/emailService";
-import { NextResponse } from "next/server";
+import User from "@/models/User";
 import crypto from "crypto";
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Example placeholder for sending email
+async function sendVerificationEmail(email, code, name) {
+  try {
+    console.log(`Sending verification code ${code} to ${email} for ${name}`);
+    // Replace with actual email service integration
+    return true;
+  } catch (err) {
+    console.error("Email sending failed:", err);
+    return false;
+  }
+}
 
 export async function POST(req) {
   try {
-    await dbConnect();
-    const {
-      fullName = "",
-      email,
-      password,
-      confirmPassword,
-    } = await req.json();
+    console.log("Received signup request");
+    const { fullName, email, password } = await req.json();
+    console.log("Request body:", { fullName, email, password });
 
+    // Validate input
     if (!fullName || !email || !password) {
-      return NextResponse.json(
-        { error: "Full name, email and password are required" },
-        { status: 400 }
-      );
+      console.warn("Validation failed: missing fields");
+      return new Response(JSON.stringify({ error: "All fields required" }), {
+        status: 400,
+      });
     }
 
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: "Please enter a valid email address" },
-        { status: 400 }
-      );
-    }
+    // Connect to DB
+    await dbConnect();
+    console.log("MongoDB connected");
 
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: "Password must be at least 8 characters long" },
-        { status: 400 }
-      );
-    }
-
-    if (confirmPassword && password !== confirmPassword) {
-      return NextResponse.json(
-        { error: "Passwords do not match" },
-        { status: 400 }
-      );
-    }
-
+    // Check for existing user
     const existing = await User.findOne({ email: email.toLowerCase().trim() });
     if (existing) {
-      return NextResponse.json(
-        { error: "User already exists" },
-        { status: 409 }
-      );
+      console.warn("Email already in use:", email);
+      return new Response(JSON.stringify({ error: "Email already in use" }), {
+        status: 409,
+      });
     }
 
-    // ✅ Do NOT hash manually here — Mongoose will handle it in pre-save hook
+    // Generate verification code
     const verificationCode = crypto.randomInt(100000, 999999).toString();
     const verificationCodeExpires = new Date(Date.now() + 15 * 60 * 1000);
 
-    const user = new User({
-      name: fullName,
+    const userData = {
+      fullName: fullName,
       email: email.toLowerCase().trim(),
       password,
+      verificationCode,
+      verificationCodeExpires,
       balance: 0,
       orders: [],
       isVerified: false,
-      verificationCode,
-      verificationCodeExpires,
-    });
+    };
+    console.log("Creating user with data:", userData);
 
-    await user.save();
+    // Create user
+    let user;
+    try {
+      user = await User.create(userData);
+      console.log("User created successfully with ID:", user._id);
+    } catch (mongooseErr) {
+      console.error("Mongoose error while creating user:", mongooseErr);
+      return new Response(
+        JSON.stringify({ error: "Database validation failed" }),
+        {
+          status: 500,
+        }
+      );
+    }
 
     // Send verification email
     const emailSent = await sendVerificationEmail(
@@ -75,34 +78,34 @@ export async function POST(req) {
       verificationCode,
       fullName
     );
-
     if (!emailSent) {
+      console.error("Failed to send verification email, deleting user");
       await User.findByIdAndDelete(user._id);
-      return NextResponse.json(
-        { error: "Failed to send verification email. Please try again." },
+      return new Response(
+        JSON.stringify({
+          error: "Failed to send verification email. Try again.",
+        }),
         { status: 500 }
       );
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        message:
-          "Account created successfully! Please check your email for the verification code.",
+    // Success response
+    return new Response(
+      JSON.stringify({
+        message: "Signup successful. Check your email for verification code.",
         user: {
           id: user._id,
           name: user.name,
           email: user.email,
           isVerified: user.isVerified,
         },
-      },
+      }),
       { status: 201 }
     );
   } catch (err) {
-    console.error("Signup error details:", err.message, err.stack);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("Unexpected signup error:", err);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+    });
   }
 }
