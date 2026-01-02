@@ -1,25 +1,47 @@
-📌 Project Overview
+💳 SwiftBill
 
-SwiftBill (Preview) — A modern, user-friendly billing & payments web application built to streamline daily financial tasks, from bill payments to transfers. Designed with a clean interface, bold gradients, and intuitive interactions to make finances feel simple and accessible.
+Utility Payments & Digital Services Platform
 
-✨ Key Highlights
+SwiftBill is a modern web application that allows users to pay utility bills and purchase digital services such as internet data bundles and SMS packages through a simple, user-friendly interface.
 
-Built with Next.js + Tailwind CSS, delivering optimized performance and responsive layouts.
+❓ Problem
 
-Emphasis on UI/UX: hero section with gradient, call-to-action buttons, illustrative icons and cards.
+Many users struggle with slow, confusing platforms when paying bills or purchasing digital services. Existing solutions often lack clarity, speed, and mobile optimization.
 
-Structured content: mission section, stats grid, features grid — all built to communicate value clearly and visually.
+✅ Solution
 
-Component-driven architecture: reusable design for hero, cards, feature grid makes the codebase maintainable and scalable.
+I built SwiftBill to provide a fast, intuitive, and secure platform where users can easily complete everyday payments with minimal friction. The application focuses on clean UI, clear flows, and reliable payment handling.
 
-Deployment handled via Vercel for seamless CI/CD and fast global delivery.
+⚙️ Features
 
-🚀 Outcomes & Skills Demonstrated
+Purchase internet data and SMS bundles
 
-Mastery of Next.js app structure: pages/ or app/ routing, layout files, and static content sections.
+Utility and bill payment functionality
 
-Tailwind-powered design: handling typography, spacing, grid layouts, and responsive breakpoints with utility classes.
+Secure checkout using Paystack
 
-Visual storytelling: converts user flow into card visuals (features, stats) and coherent page sections.
+Clean, mobile-responsive UI
 
-Deployment & environment handling for real-world readiness.
+Clear transaction flow and feedback
+
+Optimized for speed and usability
+
+🧱 Tech Stack
+
+Next.js
+
+JavaScript
+
+Tailwind CSS
+
+Paystack API
+
+MongoDB
+
+🔗 Live Demo
+
+👉 https://swiftbill-ten.vercel.app/
+
+📌 Why This Project Matters
+
+SwiftBill demonstrates my ability to build real-world, payment-based applications with a focus on usability, performance, and business value.
